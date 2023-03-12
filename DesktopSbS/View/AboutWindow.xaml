@@ -33,7 +33,8 @@
             <TextBlock TextWrapping="Wrap" Margin="10 5">A Windows 10 software to manage 3D display in Side-by-Side or Top-Bottom mode
 
             </TextBlock>
-            <TextBlock FontSize="24" Margin="0 20 0 10">Commands List</TextBlock>
+            <Button x:Name="btnEuler" Margin="10" Padding="20 5" Click="Button_Click_Nreal"  >Nreal Glasses: not found</Button>
+            <TextBlock FontSize="24" Margin="0 10 0 10">Commands List</TextBlock>
             <ItemsControl ItemsSource="{Binding KeyboardShortcuts}" Grid.IsSharedSizeScope="True">
                 <ItemsControl.Resources>
                     <Style TargetType="Label">
