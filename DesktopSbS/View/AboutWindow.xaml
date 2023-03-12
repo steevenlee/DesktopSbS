@@ -99,8 +99,9 @@
         <DockPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1">
             <Button DockPanel.Dock="Left" VerticalAlignment="Center" Command="ApplicationCommands.Properties" Margin="10" Padding="20 5">Settings</Button>
             <Button DockPanel.Dock="Left" VerticalAlignment="Center" Command="{Binding CmdCheckUpdate}" Margin="10" Padding="20 5">Check for update</Button>
-            <Button DockPanel.Dock="Right" VerticalAlignment="Center" Command="ApplicationCommands.Close" Margin="10" Padding="20 5">Close</Button>
-            <CheckBox x:Name="hideNextTime" VerticalAlignment="Center" Margin="10" HorizontalAlignment="Right">Hide this window next time</CheckBox>
+            <Button DockPanel.Dock="Right" VerticalAlignment="Center" Command="ApplicationCommands.Close" Margin="10" Padding="20 5" IsCancel="True">Exit</Button>
+            <Button DockPanel.Dock="Right" VerticalAlignment="Center" Margin="10" Padding="20 5" Click="Button_Click" IsDefault="True">Continue</Button>
+            <CheckBox x:Name="hideNextTime" VerticalAlignment="Center" Margin="10" HorizontalAlignment="Right">Don't show again</CheckBox>
         </DockPanel>
 
     </Grid>

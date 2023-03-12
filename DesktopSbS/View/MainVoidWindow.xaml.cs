@@ -96,6 +96,8 @@ namespace DesktopSbS.View
             if (!Options.HideAboutOnStartup)
             {
                 AboutWindow.Instance.ShowDialog();
+                if (!AboutWindow.Continue)
+                    Application.Current.Shutdown();
             }
 
             this.keyboardHook = new GlobalKeyboardHook();

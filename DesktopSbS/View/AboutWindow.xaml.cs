@@ -107,6 +107,12 @@ namespace DesktopSbS.View
 
         #endregion
 
-      
+        public static bool Continue { get; private set; }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            AboutWindow.Continue = true;
+            this.Close();
+        }
     }
 }

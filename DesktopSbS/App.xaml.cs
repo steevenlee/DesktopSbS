@@ -52,6 +52,9 @@ namespace DesktopSbS
                 this.Shutdown(1);
             }
 
+            if (e.Args.Contains("/about"))
+                Options.HideAboutOnStartup = false;
+
             Version win10Version = Util.GetWindowsVersion();
             if (win10Version == null)
             {
