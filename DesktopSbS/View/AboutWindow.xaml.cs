@@ -1,10 +1,12 @@
-﻿using DesktopSbS.Model;
+﻿using DesktopSbS.Interop;
+using DesktopSbS.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 
@@ -33,15 +35,21 @@ namespace DesktopSbS.View
             get { return Options.KeyboardShortcuts; }
         }
 
+        private Thread threadNeal;
         public AboutWindow()
         {
             InitializeComponent();
             this.DataContext = this;
             this.hideNextTime.IsChecked = Options.HideAboutOnStartup;
+
+            this.threadNeal = new Thread(asyncReadNreal);
+            this.threadNeal.IsBackground = true;
+            this.threadNeal.Start();
         }
 
         private void CloseCommandHandler(object sender, ExecutedRoutedEventArgs e)
         {
+            this.threadNeal.Abort();
             this.Close();
         }
 
@@ -112,7 +120,33 @@ namespace DesktopSbS.View
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             AboutWindow.Continue = true;
+            this.threadNeal.Abort();
             this.Close();
+        }
+
+        private Euler euler;
+
+        private void asyncReadNreal()
+        {
+            if (!NrealAir.Connected)
+                return;
+            while (true)
+            {
+                this.euler = NrealAir.Euler;
+                this.Dispatcher.Invoke(updateEuler);
+                Thread.Sleep(100);
+            }
+        }
+
+        private void updateEuler()
+        {
+            this.btnEuler.Content = "Nreal euler: " + euler;
+
+        }
+
+        private void Button_Click_Nreal(object sender, RoutedEventArgs e)
+        {
+            NrealAir.Reset();
         }
     }
 }

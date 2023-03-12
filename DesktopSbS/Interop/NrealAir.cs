@@ -24,9 +24,9 @@ namespace DesktopSbS.Interop
         }
         public Euler(float[] array)
         {
-            x = array[0];
+            x = array[2];
             y = array[1];
-            z = array[2];
+            z = array[0];
         }
         public override string ToString() => $"({x}, {y}, {z})";
         public static Euler operator -(Euler a, Euler b)
