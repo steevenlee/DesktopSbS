@@ -84,6 +84,7 @@
     <Compile Include="Converters\AreEqual.cs" />
     <Compile Include="Converters\DoubleOperation.cs" />
     <Compile Include="Converters\ValueConverterGroup.cs" />
+    <Compile Include="Interop\NrealAir.cs" />
     <Compile Include="Model\AppUpdater.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\NotifiableValue.cs" />

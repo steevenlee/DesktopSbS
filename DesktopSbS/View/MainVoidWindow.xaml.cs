@@ -93,6 +93,9 @@ namespace DesktopSbS.View
                      }
                  });
             }
+
+            NrealAir.Start();
+
             if (!Options.HideAboutOnStartup)
             {
                 AboutWindow.Instance.ShowDialog();
