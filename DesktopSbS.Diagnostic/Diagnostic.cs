@@ -104,7 +104,7 @@ namespace DesktopSbS.Diagnostic
             User32.GetWindowRect(hwnd, ref sourceRect);
 
             WinSbS win = new WinSbS(hwnd);
-            win.SourceRect = sourceRect;
+            win.SourceRect = sourceRect.toRectangle();
             win.Title = title;
             win.WinStyle = winStyle;
             win.WinStyleEx = winStyleEx;

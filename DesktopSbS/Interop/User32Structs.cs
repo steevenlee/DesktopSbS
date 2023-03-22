@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 
 namespace DesktopSbS.Interop
@@ -63,12 +64,27 @@ namespace DesktopSbS.Interop
         public int Right;
         public int Bottom;
 
+        public static readonly RECT Empty;
+
         public RECT(int left, int top, int right, int bottom)
         {
             Left = left;
             Top = top;
             Right = right;
             Bottom = bottom;
+        }
+
+        public int Width => Right - Left;
+        public int Height => Bottom - Top;
+
+        public Rectangle toRectangle()
+        {
+            return new Rectangle(Left, Top, Width, Height);
+        }
+
+        public static RECT fromRectangle(Rectangle src)
+        {
+            return new RECT(src.Left, src.Top, src.Right, src.Bottom);
         }
 
         public bool IsSize0()

@@ -51,6 +51,7 @@ namespace DesktopSbS.View
         {
             this.threadNeal.Abort();
             this.Close();
+            NrealAir.Reset();
         }
 
         private void Window_Closed(object sender, EventArgs e)

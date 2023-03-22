@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,9 @@ namespace DesktopSbS.View
 
         private List<WinSbS> windows = new List<WinSbS>();
         private List<WinSbS> tmpWindows = new List<WinSbS>();
+ 
+        private bool MaximizedWindowFound;
+        private bool TaskbarWindowFound;
 
         private bool hasToUpdate = false;
 
@@ -170,6 +174,10 @@ namespace DesktopSbS.View
                         Options.KeepRatio = !Options.KeepRatio;
                         this.hasToUpdate = true;
                         break;
+                    case ShortcutCommands.ResetView:
+                        NrealAir.Reset();
+                        this.hasToUpdate = true;
+                        break;
                     default:
                         break;
                 }
@@ -178,9 +186,24 @@ namespace DesktopSbS.View
 
         private void asyncUpdateWindows()
         {
-
             while (!this.requestAbort)
             {
+                /* Head view */
+                Euler euler = NrealAir.Euler;
+                if (Math.Abs(euler.x - Options.Euler.x) > 5)
+                {
+                    this.hasToUpdate = true;
+                    Options.Euler = euler;
+                    Options.ViewRatio = -euler.x / 90.0;
+
+                    // src view
+                    int offsetX = (int)(Options.ViewRatio * Options.ScreenSrcBounds.Width);
+                    Rectangle rect = Options.ScreenSrcBounds;
+                    rect.Offset(offsetX, 0);
+                    rect.Intersect(Options.ScreenSrcBounds);
+                    Options.ScreenSrcView = rect;
+                }
+
                 DateTime start = DateTime.Now;
                 this.updateWindows();
                 DateTime end = DateTime.Now;
@@ -197,10 +220,12 @@ namespace DesktopSbS.View
         private void updateWindows()
         {
             this.tmpWindows = new List<WinSbS>();
+            this.TaskbarWindowFound = false;
+            this.MaximizedWindowFound = false;
 
             if (this.Is3DActive)
             {
-                User32.EnumWindows(windowFound, 0);
+               User32.EnumWindows(windowFound, 0);
             }
 
             int updateAllIndex = -1;
@@ -209,7 +234,7 @@ namespace DesktopSbS.View
 
             WinSbS taskBarWindow = null;
 
-            WinSbS tmpWindow = this.tmpWindows.FirstOrDefault(w => w.SourceRect.IsMaximized());
+            WinSbS tmpWindow = this.tmpWindows.FirstOrDefault(w => w.Maximized);
             try
             {
                 if (tmpWindow != null &&
@@ -237,8 +262,7 @@ namespace DesktopSbS.View
                     tmpWindow.Owner = null;
                 }
 
-
-                if (tmpWindow.SourceRect.Left <= Options.AreaSrcBounds.Left && tmpWindow.SourceRect.Right >= Options.AreaSrcBounds.Right)
+                if (tmpWindow.Maximized || tmpWindow.Taskbar)
                 {
                     offsetLevel = 0;
                 }
@@ -249,7 +273,7 @@ namespace DesktopSbS.View
                 tmpWindow.OffsetLevel = offsetLevel;
 
                 int oldIndex = this.windows.FindIndex(w => w.Handle == tmpWindow.Handle);
-                if (oldIndex < 0)
+                if (oldIndex < 0) // New window
                 {
                     App.Current.Dispatcher.Invoke(tmpWindow.RegisterThumbs);
                 }
@@ -259,24 +283,18 @@ namespace DesktopSbS.View
 
                     if (updateAllIndex < 0 && this.windows[oldIndex].Owner?.Handle != tmpWindow.Owner?.Handle)
                     {
-                        updateAllIndex = i;
+                        updateAllIndex = i; // Back window changed
                     }
                     else if (!this.windows[oldIndex].SourceRect.Equals(tmpWindow.SourceRect))
                     {
-                        tmpWindow.UpdateThumbs();
+                        tmpWindow.UpdateThumbs(); // Window size changed
                     }
                     this.windows.RemoveAt(oldIndex);
 
                 }
 
-                if (tmpWindow.SourceRect.Left <= Options.ScreenSrcBounds.Left &&
-                        tmpWindow.SourceRect.Right >= Options.ScreenSrcBounds.Right &&
-                        tmpWindow.SourceRect.Bottom - tmpWindow.SourceRect.Top == Options.ScreenSrcBounds.Height - Options.ScreenSrcWorkspace.Height)
-                {
-
+                if (tmpWindow.Taskbar)
                     taskBarWindow = tmpWindow;
-                }
-
             }
             for (int i = 0; i < this.windows.Count; ++i)
             {
@@ -304,46 +322,60 @@ namespace DesktopSbS.View
                 {
                     if (this.windows[i] != taskBarWindow) this.windows[i].UpdateThumbs();
                 }
+                taskBarWindow?.UpdateThumbs(true);
             }
 
-            taskBarWindow?.UpdateThumbs(true);
             this.cursorSbS.UpdateThumbs((this.windows.Any() ? this.windows.Max(w => w.OffsetLevel) : 0) + 1);
-
-
         }
 
         private bool windowFound(IntPtr hwnd, int lParam)
         {
-
-            StringBuilder sb = new StringBuilder(100);
-            User32.GetWindowText(hwnd, sb, sb.Capacity);
-            string title = sb.ToString();
-
-            // don't consider our own windows 
-            if (title == "ThumbWindows") return true;
-
             WS winStyle = (WS)User32.GetWindowLongA(hwnd, User32.GWL_STYLE);
-            WSEX winStyleEx = (WSEX)User32.GetWindowLongA(hwnd, User32.GWL_EXSTYLE);
+            if ((winStyle & WS.WS_VISIBLE) != WS.WS_VISIBLE
+                || (winStyle & WS.WS_ICONIC) != 0
+                || (winStyle & WS.WS_DISABLED) != 0)
+                return true;
 
-            RECT sourceRect = new RECT();
-            User32.GetWindowRect(hwnd, ref sourceRect);
+            RECT rect = new RECT();
+            User32.GetWindowRect(hwnd, ref rect);
+            if (rect.IsSize0())
+                return true;
+            // Skip windows that not on source view
+            Rectangle rectangle = rect.toRectangle();
+            if (!Options.ScreenSrcView.IntersectsWith(rectangle))
+                return true;
 
             // Detection of cloaked win10 windows => not rendered 
             int cloaked = 0;
             DwmApi.DwmGetWindowAttribute(hwnd, DwmApi.DwmWindowAttribute.DWMWA_CLOAKED, out cloaked, sizeof(int));
+            if (cloaked != 0)
+                return true;
 
-            if (cloaked == 0
-                && !sourceRect.IsSize0()
-                && (winStyle & WS.WS_VISIBLE) == WS.WS_VISIBLE
-                && (winStyle & WS.WS_ICONIC) == 0
-                && (winStyle & WS.WS_DISABLED) == 0)
+            StringBuilder sb = new StringBuilder(100);
+            User32.GetWindowText(hwnd, sb, sb.Capacity);
+            string title = sb.ToString();
+            // don't consider our own windows 
+            if (title == "ThumbWindows")
+                return true;
+
+            bool isTaskbar = rectangle.Equals(Options.ScreenSrcTaskbar);
+            if (!this.MaximizedWindowFound || isTaskbar)
             {
                 WinSbS win = new WinSbS(hwnd);
-                win.SourceRect = sourceRect;
+                win.SourceRect = rectangle;
                 win.Title = title;
-
+                win.Taskbar = isTaskbar;
+                win.Maximized = (winStyle & WS.WS_MAXIMIZE) > 0;
+                if (win.Maximized)
+                    this.MaximizedWindowFound = true;
+                if (isTaskbar)
+                    this.TaskbarWindowFound = true;
                 this.tmpWindows.Add(win);
             }
+
+            if (this.MaximizedWindowFound && this.TaskbarWindowFound)
+                // Stop enumeration
+                return false;
 
             return true; //continue enumeration
         }

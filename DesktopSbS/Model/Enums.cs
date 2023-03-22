@@ -34,7 +34,10 @@ namespace DesktopSbS.Model
         HideDestCursor = 7,
 
         [Description("Keep windows ratio")]
-        KeepRatio = 8
+        KeepRatio = 8,
+
+        [Description("Reset view center")]
+        ResetView = 9
     }
 
     public class EnumDescriptionTypeConverter : EnumConverter

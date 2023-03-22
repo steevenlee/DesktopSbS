@@ -1,4 +1,5 @@
-﻿using DesktopSbS.Model;
+﻿using DesktopSbS.Interop;
+using DesktopSbS.Model;
 using DesktopSbS.Properties;
 using System;
 using System.Collections.Generic;
@@ -130,6 +131,7 @@ namespace DesktopSbS
             result.Add(new Tuple<ModifierKeys, Key, ShortcutCommands>(ModifierKeys.Control | ModifierKeys.Alt, Key.B, ShortcutCommands.Pause3D));
             result.Add(new Tuple<ModifierKeys, Key, ShortcutCommands>(ModifierKeys.Control | ModifierKeys.Alt, Key.H, ShortcutCommands.HideDestCursor));
             result.Add(new Tuple<ModifierKeys, Key, ShortcutCommands>(ModifierKeys.Control | ModifierKeys.Alt, Key.K, ShortcutCommands.KeepRatio));
+            result.Add(new Tuple<ModifierKeys, Key, ShortcutCommands>(ModifierKeys.Control | ModifierKeys.Alt, Key.R, ShortcutCommands.ResetView));
             return result;
 
         }
@@ -157,6 +159,14 @@ namespace DesktopSbS
         public static Rectangle AreaSrcBounds { get; private set; }
 
         public static Rectangle ScreenSrcWorkspace { get; private set; }
+
+        public static Rectangle ScreenSrcTaskbar { get; private set; }
+
+        /* Head view */
+        public static Euler Euler { get; set; }
+        public static Rectangle ScreenSrcView { get; set; }
+        public static double ViewRatio { get; set; }
+        public static bool ViewDstLeft { get; set; } /* Src area on dest */
 
         public static bool HideSrcCursor
         {
@@ -259,6 +269,25 @@ namespace DesktopSbS
         {
             Options.ScreenSrcBounds = Screen.AllScreens[Options.ScreenSrcId - 1].Bounds;
             Options.ScreenSrcWorkspace = Screen.AllScreens[Options.ScreenSrcId - 1].WorkingArea;
+            
+            /* Figure out taskbar area */
+            Rectangle rect = Options.ScreenSrcBounds;
+            if (Options.ScreenSrcBounds.Width == ScreenSrcWorkspace.Width) // horizontal taskbar
+            {
+                rect.Height = Options.ScreenSrcBounds.Height - ScreenSrcWorkspace.Height;
+                if (Options.ScreenSrcBounds.Y == ScreenSrcWorkspace.Y) // bottom
+                    rect.Y = ScreenSrcWorkspace.Bottom;
+                else
+                    rect.Y = Options.ScreenSrcBounds.Y;
+            } else // Vertical taskbar
+            {
+                rect.Width = Options.ScreenSrcBounds.Width - ScreenSrcWorkspace.Width;
+                if (Options.ScreenSrcBounds.X == ScreenSrcWorkspace.X) // right
+                    rect.X = ScreenSrcWorkspace.Right;
+                else
+                    rect.Y = Options.ScreenSrcBounds.X;
+            }
+            Options.ScreenSrcTaskbar = rect;
 
             Options.AreaSrcBounds = new Rectangle(
                 Settings.Default.AreaSrcOrigin != System.Drawing.Point.Empty ? Settings.Default.AreaSrcOrigin : Options.ScreenSrcBounds.Location,
