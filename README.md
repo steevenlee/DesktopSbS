@@ -1,5 +1,21 @@
 # DesktopSbS
 
+## NReal Air 3D Glasses
+
+Keep screen centor by using Glasses sensor
+
+- Plug Nreal Air into laptop
+- Siwtch Nreal Air into 3D mode by pressing "Light+" button longer
+- "Win"+"P" to switch Nreal Air screen as extened screen
+- Set Nreal Air screen resolution to 3840*1080
+- Run DesktopSBS, in About dialog, click Setting, set destination screen to 2(Nreal Air)
+- Ctrl+Alt+R to reset screen to centor
+
+## Know issue of Nreal Air
+
+- Taskbar and Windows not shown
+- Screen can't move smoothly
+
 ## Warning
 
 ![Warning](./Res/img/warning.png) DesktopSbS needs **Windows 10 Creators Update** to work well.  

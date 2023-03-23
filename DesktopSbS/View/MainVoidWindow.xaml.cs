@@ -186,22 +186,28 @@ namespace DesktopSbS.View
 
         private void asyncUpdateWindows()
         {
+            const double EULER_GATE = 5.0;
+
             while (!this.requestAbort)
             {
                 /* Head view */
                 Euler euler = NrealAir.Euler;
-                if (Math.Abs(euler.x - Options.Euler.x) > 5)
+                if (Math.Abs(euler.x - Options.Euler.x) > EULER_GATE || Math.Abs(euler.y - Options.Euler.y) > EULER_GATE)
                 {
                     this.hasToUpdate = true;
                     Options.Euler = euler;
-                    Options.ViewRatio = -euler.x / 90.0;
+                    Options.ViewRatioX = -euler.x / 90.0;
+                    Options.ViewRatioY = -euler.y / 90.0;
 
                     // src view
-                    int offsetX = (int)(Options.ViewRatio * Options.ScreenSrcBounds.Width);
+                    int offsetX = (int)(Options.ViewRatioX * Options.ScreenSrcBounds.Width);
+                    int offsetY = (int)(Options.ViewRatioY * Options.ScreenSrcBounds.Height);
                     Rectangle rect = Options.ScreenSrcBounds;
-                    rect.Offset(offsetX, 0);
+                    rect.Offset(offsetX, offsetY);
                     rect.Intersect(Options.ScreenSrcBounds);
                     Options.ScreenSrcView = rect;
+
+                    // Debug.WriteLine($"X: {offsetX}, Y: {offsetY}");
                 }
 
                 DateTime start = DateTime.Now;

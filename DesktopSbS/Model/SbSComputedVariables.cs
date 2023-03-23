@@ -18,7 +18,8 @@ namespace DesktopSbS.Model
         {
             bool modeSbS = Options.ModeSbS;
             bool keepRatio = Options.KeepRatio;
-            int destXOffset = (int)(Options.ScreenDestBounds.Width * Options.ViewRatio) / (modeSbS ? 2 : 1);
+            int destXOffsetX = (int)(Options.ScreenDestBounds.Width * Options.ViewRatioX) / (modeSbS ? 2 : 1);
+            int destXOffsetY = (int)(Options.ScreenDestBounds.Height * Options.ViewRatioY) / (modeSbS ? 1 : 2);
 
             // Size ratio between src size and dest size
             RatioX = (modeSbS ? 2.0 : 1.0) * Options.AreaSrcBounds.Width / Options.ScreenDestBounds.Width;
@@ -43,7 +44,8 @@ namespace DesktopSbS.Model
                 }
             }
 
-            DestPositionX -= destXOffset;            
+            DestPositionX -= destXOffsetX;
+            DestPositionY -= destXOffsetY;
 
             /* Right side */
             DecalSbSX = modeSbS ? Options.ScreenDestBounds.Width / 2 : 0;

@@ -165,7 +165,8 @@ namespace DesktopSbS
         /* Head view */
         public static Euler Euler { get; set; }
         public static Rectangle ScreenSrcView { get; set; }
-        public static double ViewRatio { get; set; }
+        public static double ViewRatioX { get; set; }
+        public static double ViewRatioY { get; set; }
         public static bool ViewDstLeft { get; set; } /* Src area on dest */
 
         public static bool HideSrcCursor
